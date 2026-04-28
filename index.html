@@ -58,19 +58,24 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    // 👉 Mix of normal + shorts video IDs
     var videoIds = [
-		//"dQw4w9WgXcQ",  // working
-    //"3JZ_D3ELwOQ",  // working
-    //"aqz-KE-bpKQ",   // working
-     "oc6fMfTAyHg","XWJtgNNP-cg","wn28-YKQz6U","W2nCn2uPGCc","j9xCFzvphLw","WX74RR-X6fI"
+        "dQw4w9WgXcQ",
+        "3JZ_D3ELwOQ",
+        "aqz-KE-bpKQ"
     ];
-//"dQw4w9WgXcQ",  // 16:9 example
-  //      "3JZ_D3ELwOQ",  // 16:9 example
-    //    "SHORTS_ID_1", // replace with real Shorts ID
-      //  "SHORTS_ID_2"  // replace with real Shorts ID
+
     var currentIndex = 0;
     var player;
+
+    // 🔀 Shuffle only once
+    function shuffle(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            let j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+
+    shuffle(videoIds); // 👉 only on page load
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('player', {
@@ -82,7 +87,7 @@
                 mute: 1,
                 controls: 1,
                 playsinline: 1,
-                rel: 0
+                origin: window.location.origin
             },
             events: {
                 'onStateChange': onPlayerStateChange
@@ -91,7 +96,6 @@
     }
 
     function onPlayerStateChange(event) {
-        // 0 = ended
         if (event.data === 0) {
             playNext();
         }
@@ -99,9 +103,11 @@
 
     function playNext() {
         currentIndex++;
+
         if (currentIndex >= videoIds.length) {
-            currentIndex = 0; // loop
+            currentIndex = 0; // 🔁 loop SAME shuffled order
         }
+
         player.loadVideoById(videoIds[currentIndex]);
     }
 </script>
