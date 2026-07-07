@@ -161,7 +161,7 @@ function pauseVideo(){
     }
 }
 
-function resumeVideo(){
+/*function resumeVideo(){
 
     if(playerReady){
 
@@ -172,8 +172,18 @@ function resumeVideo(){
         }catch(e){}
 
     }
-}
+}*/
+function resumeVideo() {
 
+    if (!playerReady)
+        return;
+
+    setTimeout(function () {
+        try {
+            player.playVideo();
+        } catch(e) {}
+    }, 500);
+}
 /*
  * Android Bridge
  */
