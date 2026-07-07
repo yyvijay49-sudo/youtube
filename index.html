@@ -172,7 +172,7 @@ function pauseVideo(){
         }catch(e){}
 
     }
-}*/
+}
 function resumeVideo() {
 
     if (!playerReady)
@@ -183,6 +183,79 @@ function resumeVideo() {
             player.playVideo();
         } catch(e) {}
     }, 500);
+}*/
+let resumeRequested = false;
+
+function onPlayerReady(event) {
+
+    player = event.target;
+
+    if (resumeRequested) {
+        tryResume(0);
+    }
+}
+
+function resumeVideo() {
+
+    resumeRequested = true;
+
+    if (player) {
+        tryResume(0);
+    }
+}
+
+function tryResume(attempt) {
+
+    if (!resumeRequested)
+        return;
+
+    if (!player)
+        return;
+
+    let state = player.getPlayerState();
+
+    switch (state) {
+
+        case YT.PlayerState.PLAYING:
+            resumeRequested = false;
+            return;
+
+        case YT.PlayerState.PAUSED:
+        case YT.PlayerState.CUED:
+
+            player.playVideo();
+
+            setTimeout(function () {
+
+                if (player.getPlayerState() === YT.PlayerState.PLAYING) {
+                    resumeRequested = false;
+                } else if (attempt < 10) {
+                    tryResume(attempt + 1);
+                }
+
+            }, 200);
+
+            return;
+
+        case YT.PlayerState.UNSTARTED:
+        case YT.PlayerState.BUFFERING:
+
+            if (attempt < 10) {
+                setTimeout(function () {
+                    tryResume(attempt + 1);
+                }, 200);
+            }
+
+            return;
+
+        default:
+
+            if (attempt < 10) {
+                setTimeout(function () {
+                    tryResume(attempt + 1);
+                }, 200);
+            }
+    }
 }
 /*
  * Android Bridge
