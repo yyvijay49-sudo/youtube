@@ -1,283 +1,219 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<style>
-    html, body {
-        margin: 0;
-        padding: 0;
-        height: 100%;
-        width: 100%;
-        background: black;
-        overflow: hidden;
-    }
 
-    /* Container fits your WebView (even if half screen) */
-    #player-container {
-        position: relative;
-        width: 100%;
-        height: 100%;
-        background: black;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-    }
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    /* Let YouTube manage aspect ratio properly */
-    iframe {
-        max-width: 100%;
-        max-height: 100%;
-    }
+    <style>
 
-    /* Optional: Next button */
-    #controls {
-        position: absolute;
-        bottom: 10px;
-        right: 10px;
-        z-index: 10;
-    }
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            background: black;
+            overflow: hidden;
+        }
 
-    button {
-        padding: 8px 12px;
-        font-size: 14px;
-    }
-</style>
+        #player-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            background: black;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        iframe {
+            max-width: 100%;
+            max-height: 100%;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+
+        button {
+            padding: 8px 12px;
+            font-size: 14px;
+        }
+
+    </style>
+
 </head>
 
 <body>
 
 <div id="player-container">
+
     <div id="player"></div>
 
-    <!-- Optional manual control -->
     <div id="controls">
         <button onclick="playNext()">Next ▶</button>
     </div>
+
 </div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
 
-const videoIds = [
-    "dQw4w9WgXcQ",
-    "3JZ_D3ELwOQ",
-    "aqz-KE-bpKQ"
-];
+    var videoIds = [
+        "dQw4w9WgXcQ",
+        "3JZ_D3ELwOQ",
+        "aqz-KE-bpKQ"
+    ];
 
-let currentIndex = 0;
-let player = null;
-let playerReady = false;
+    var currentIndex = 0;
+    var player;
 
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        let j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
+    // Shuffle only once
+    function shuffle(array) {
+
+        for (let i = array.length - 1; i > 0; i--) {
+
+            let j = Math.floor(Math.random() * (i + 1));
+
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
-}
 
-shuffle(videoIds);
+    shuffle(videoIds);
 
-function onYouTubeIframeAPIReady() {
+    function onYouTubeIframeAPIReady() {
 
-    player = new YT.Player('player', {
+        player = new YT.Player('player', {
 
-        width: '100%',
-        height: '100%',
+            videoId: videoIds[currentIndex],
 
-        videoId: videoIds[currentIndex],
+            width: '100%',
+            height: '100%',
 
-        playerVars: {
+            playerVars: {
 
-            autoplay: 1,
-            mute: 1,
-            controls: 1,
-            playsinline: 1,
-            rel: 0,
-            enablejsapi: 1
+                autoplay: 1,
+                mute: 1,
+                controls: 1,
+                playsinline: 1,
+                origin: window.location.origin
 
-        },
+            },
 
-        events: {
+            events: {
 
-            onReady: onPlayerReady,
-            onStateChange: onPlayerStateChange,
-            onError: onPlayerError
+                onStateChange: onPlayerStateChange
 
+            }
+
+        });
+    }
+
+    function onPlayerStateChange(event) {
+
+        if (event.data === YT.PlayerState.ENDED) {
+            playNext();
+        }
+    }
+
+    function playNext() {
+
+        currentIndex++;
+
+        if (currentIndex >= videoIds.length) {
+            currentIndex = 0;
         }
 
-    });
-
-}
-
-function onPlayerReady(event) {
-
-    playerReady = true;
-
-    event.target.playVideo();
-}
-
-function onPlayerStateChange(event) {
-
-    if (event.data === YT.PlayerState.ENDED) {
-        playNext();
+        player.loadVideoById(videoIds[currentIndex]);
     }
-}
 
-function onPlayerError(event) {
+    function pauseVideo() {
 
-    console.log("YT ERROR = " + event.data);
-
-    // Retry current video once
-    setTimeout(function(){
-
-        if(playerReady){
-            player.loadVideoById(videoIds[currentIndex]);
-        }
-
-    },1500);
-}
-
-function playNext() {
-
-    if(!playerReady)
-        return;
-
-    currentIndex++;
-
-    if(currentIndex >= videoIds.length)
-        currentIndex = 0;
-
-    player.loadVideoById(videoIds[currentIndex]);
-}
-
-function pauseVideo(){
-
-    if(playerReady){
-
-        try{
-            player.pauseVideo();
-        }catch(e){}
-    }
-}
-
-/*function resumeVideo(){
-
-    if(playerReady){
-
-        try{
-
-            player.playVideo();
-
-        }catch(e){}
-
-    }
-}
-function resumeVideo() {
-
-    if (!playerReady)
-        return;
-
-    setTimeout(function () {
         try {
-            player.playVideo();
-        } catch(e) {}
-    }, 500);
-}*/
-let resumeRequested = false;
 
-function onPlayerReady(event) {
+            if (player) {
+                player.pauseVideo();
+            }
 
-    player = event.target;
+        } catch (e) {}
 
-    if (resumeRequested) {
+    }
+
+    function resumeVideo() {
         tryResume(0);
     }
-}
 
-function resumeVideo() {
+    function tryResume(attempt) {
 
-    resumeRequested = true;
+        if (!player) {
 
-    if (player) {
-        tryResume(0);
-    }
-}
+            if (attempt < 10) {
 
-function tryResume(attempt) {
+                setTimeout(function () {
+                    tryResume(attempt + 1);
+                }, 200);
 
-    if (!resumeRequested)
-        return;
+            }
 
-    if (!player)
-        return;
-
-    let state = player.getPlayerState();
-
-    switch (state) {
-
-        case YT.PlayerState.PLAYING:
-            resumeRequested = false;
             return;
+        }
 
-        case YT.PlayerState.PAUSED:
-        case YT.PlayerState.CUED:
+        try {
 
-            player.playVideo();
+            let state = player.getPlayerState();
+
+            if (state === YT.PlayerState.PLAYING)
+                return;
+
+            if (state === YT.PlayerState.PAUSED ||
+                state === YT.PlayerState.CUED) {
+
+                player.playVideo();
+
+                setTimeout(function () {
+
+                    if (player.getPlayerState() !== YT.PlayerState.PLAYING &&
+                        attempt < 10) {
+
+                        tryResume(attempt + 1);
+
+                    }
+
+                }, 200);
+
+                return;
+            }
+
+        } catch (e) {}
+
+        if (attempt < 10) {
 
             setTimeout(function () {
-
-                if (player.getPlayerState() === YT.PlayerState.PLAYING) {
-                    resumeRequested = false;
-                } else if (attempt < 10) {
-                    tryResume(attempt + 1);
-                }
-
+                tryResume(attempt + 1);
             }, 200);
 
-            return;
-
-        case YT.PlayerState.UNSTARTED:
-        case YT.PlayerState.BUFFERING:
-
-            if (attempt < 10) {
-                setTimeout(function () {
-                    tryResume(attempt + 1);
-                }, 200);
-            }
-
-            return;
-
-        default:
-
-            if (attempt < 10) {
-                setTimeout(function () {
-                    tryResume(attempt + 1);
-                }, 200);
-            }
-    }
-}
-/*
- * Android Bridge
- */
-
-window.AndroidPage = {
-
-    pause : function(){
-
-        pauseVideo();
-
-    },
-
-    resume : function(){
-
-        resumeVideo();
-
+        }
     }
 
-};
+    window.AndroidPage = {
+
+        pause: function () {
+            pauseVideo();
+        },
+
+        resume: function () {
+            resumeVideo();
+        }
+
+    };
 
 </script>
 
 </body>
+
 </html>
